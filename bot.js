@@ -19,8 +19,8 @@ bot.on("new_chat_members", (msg) => {
 
 bot.onText(/\/update/, (msg) => {
     const chatId = msg.chat.id;
-    update().then(r => console.log("Mise à jour effectuée")).catch(e => console.error(e));
-    const response = "La mise à jour a été effectuée.";
+    let response;
+    update().then(r => { response = "La mise à jour a été effectuée."}).catch(e => console.error(e));
     bot.sendMessage(chatId, response);
 });
 
@@ -40,7 +40,7 @@ bot.on("message", (msg) => {
         if (foundMovies.length > 0) {
             // Si des films sont trouvés, envoyez leurs détails
             foundMovies.forEach((movie) => {
-                const reply = `🔗 Lien: [${movie.title}](${movie.link})\n⭐️ Rating: ${movie.rating}\n📅 Date de sortie: ${movie.releaseDate}\n🎥 AlloCiné: [${movie.title}](${movie.urlAlloCine})`;
+                const reply = `🔗 Lien: [${movie.title}](${movie.link})\n----------\n⭐️ Note Dourg: ${movie.rating}\n----------\n📅 Date de sortie: ${movie.releaseDate}\n----------\n🎥 AlloCiné: [${movie.title}](${movie.urlAlloCine})`;
                 bot.sendMessage(chatId, reply, {
                     parse_mode: "Markdown",
                     disable_web_page_preview: true,
