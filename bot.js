@@ -1,7 +1,8 @@
+const keep_alive = require('./keep_alive.js')
 const TelegramBot = require('node-telegram-bot-api');
 const fs= require('fs');
 
-const token = process.env.TOKENTELEGRAM;
+const token = process.env.TOKEN;
 const bot = new TelegramBot(token, {polling: true});
 
 bot.onText(/\/start/, (msg) => {
@@ -51,50 +52,7 @@ bot.on('message', (msg) => {
     }
 });
 
-// Définissez le clavier personnalisé avec un bouton
-const keyboard = {
-    reply_markup: {
-        keyboard: [
-            ['Mon Bouton'],
-            ['Un autre bouton']
-        ],
-        resize_keyboard: true, // Permet au clavier de se réduire après avoir appuyé sur un bouton
-        one_time_keyboard: false // Le clavier reste visible après avoir appuyé sur un bouton
-    }
-};
-
-// Écoutez un événement ou une commande pour envoyer le clavier personnalisé
-bot.onText(/\/startkeyboard/, (msg) => {
-    const chatId = msg.chat.id;
-    const message = 'Appuyez sur un bouton :';
-
-    // Envoyez le message avec le clavier personnalisé
-    bot.sendMessage(chatId, message, keyboard);
-});
-
-// Écoutez l'appui sur un bouton du clavier personnalisé
-bot.on('message', (msg) => {
-    const chatId = msg.chat.id;
-    const text = msg.text;
-
-    // Vérifiez quel bouton a été appuyé
-    if (text === 'Mon Bouton') {
-        bot.sendMessage(chatId, 'Vous avez appuyé sur le bouton "Mon Bouton".');
-    } else if (text === 'Un autre bouton') {
-        bot.sendMessage(chatId, 'Vous avez appuyé sur le bouton "Un autre bouton".');
-    }
-});
-
 // Démarrage du bot
 bot.on('polling_error', (error) => {
     console.error(error);
-});
-
-// Envoyez le clavier personnalisé dès que le bot démarre
-bot.on('polling', () => {
-    const chatId = 'ID_DU_CHAT'; // Remplacez par l'ID du chat où vous souhaitez afficher le clavier
-    const message = 'Appuyez sur un bouton :';
-
-    // Envoyez le message avec le clavier personnalisé
-    bot.sendMessage(chatId, message, keyboard);
 });
