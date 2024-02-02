@@ -4,19 +4,8 @@ const fs= require('fs');
 
 const token = process.env.TOKEN;
 const bot = new TelegramBot(token, {polling: true});
-
-bot.onText(/\/start/, (msg) => {
-    const chatId = msg.chat.id;
-
-    // Votre message de bienvenue lorsque quelqu'un clique sur 'Start'
-    const welcomeMessage = "Bienvenue, Nous sommes ravis de vous avoir parmi nous dans ce groupe. Écrivez le nom d'un film, et le BOT vous retournera le lien et la note du film basés sur le site de cinemadourg.free.fr.";
-
-    // Envoyez le message de bienvenue
-    bot.sendMessage(chatId, welcomeMessage);
-});
-
 // Écoutez l'événement 'new_chat_members' pour détecter les nouveaux membres
-bot.on('new_chat_members', (msg) => {
+bot.on("new_chat_members", (msg) => {
     const chatId = msg.chat.id;
     const newMember = msg.new_chat_member;
 
@@ -27,24 +16,27 @@ bot.on('new_chat_members', (msg) => {
     bot.sendMessage(chatId, introductionMessage);
 });
 
-bot.on('message', (msg) => {
-    const rawData = fs.readFileSync('moviesData.json', 'utf8');
+bot.on("message", (msg) => {
+    const rawData = fs.readFileSync("moviesData.json", "utf8");
     const movies = JSON.parse(rawData.toString());
 
     const chatId = msg.chat.id;
     const userText = msg.text.toLowerCase();
 
     // Cherchez dans le fichier JSON pour trouver un titre correspondant
-    const foundMovies = Object.values(movies).filter(movie =>
-        movie.title && movie.title.toLowerCase().includes(userText)
+    const foundMovies = Object.values(movies).filter(
+        (movie) => movie.title && movie.title.toLowerCase().includes(userText),
     );
 
     if (foundMovies.length > 0) {
         // Si des films sont trouvés, envoyez leurs détails
-        foundMovies.forEach(movie => {
+        foundMovies.forEach((movie) => {
             const formatLinkMarkdown = `🔗 Link : [${movie.title}](${movie.link})`;
             const reply = `${formatLinkMarkdown}\n⭐️ Rating : ${movie.rating}`;
-            bot.sendMessage(chatId, reply, {parse_mode: 'Markdown', disable_web_page_preview: true});
+            bot.sendMessage(chatId, reply, {
+                parse_mode: "Markdown",
+                disable_web_page_preview: true,
+            });
         });
     } else {
         // Si aucun film n'est trouvé, envoyez un message de non-trouvaille
@@ -53,6 +45,6 @@ bot.on('message', (msg) => {
 });
 
 // Démarrage du bot
-bot.on('polling_error', (error) => {
+bot.on("polling_error", (error) => {
     console.error(error);
 });
