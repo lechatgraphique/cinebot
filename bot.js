@@ -40,12 +40,7 @@ bot.on("message", (msg) => {
         if (foundMovies.length > 0) {
             // Si des films sont trouvés, envoyez leurs détails
             foundMovies.forEach((movie) => {
-                const reply = `
-                    🔗 Lien Dourg : [${movie.title}](${movie.link})\n
-                    ⭐️ Rating : ${movie.rating}\n
-                    📅 Date de sortie : ${movie.releaseDate}
-                    🎥 AlloCiné : [Lien AlloCiné](${movie.urlAlloCine})
-                `;
+                const reply = `🔗 Lien: [${movie.title}](${movie.link})\n⭐️ Rating: ${movie.rating}\n📅 Date de sortie: ${movie.releaseDate}\n🎥 AlloCiné: [${movie.title}](${movie.urlAlloCine})`;
                 bot.sendMessage(chatId, reply, {
                     parse_mode: "Markdown",
                     disable_web_page_preview: true,
