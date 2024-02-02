@@ -1,10 +1,15 @@
 const keep_alive = require('./keep_alive.js')
 const TelegramBot = require('node-telegram-bot-api');
 const fs= require('fs');
+const cheerio = require("cheerio");
+const axios = require("axios");
+
+const url = process.env.url;
+let moviesData = {};
 
 const token = process.env.TOKEN;
 const bot = new TelegramBot(token, {polling: true});
-// Écoutez l'événement 'new_chat_members' pour détecter les nouveaux membres
+
 bot.on("new_chat_members", (msg) => {
     const chatId = msg.chat.id;
     const newMember = msg.new_chat_member;
@@ -14,6 +19,33 @@ bot.on("new_chat_members", (msg) => {
 
     // Envoyez le message d'introduction
     bot.sendMessage(chatId, introductionMessage);
+});
+
+bot.onText(/\/update/, (msg) => {
+    const chatId = msg.chat.id;
+    getHTML().then(res => {
+        const $ = cheerio.load(res);
+        $('table tr').each((i, elem) => {
+            const title = $(elem).find('td:first-child a').text();
+            let link = $(elem).find('td:first-child a').attr('href');
+            const rating = $(elem).find('td:nth-child(2) .Style24').text();
+            // Encoder l'URL contenue dans la variable link
+            if (link) {
+                link = encodeURI(link);
+            }
+            moviesData[i] = {
+                title,
+                link,
+                rating
+            }
+        })
+        fs.writeFile('moviesData.json', JSON.stringify(moviesData), (err) => {
+            if (err) throw err;
+            console.log("JSON file has been saved.");
+        });
+    })
+    const response = "La mise à jour a été effectuée.";
+    bot.sendMessage(chatId, response);
 });
 
 bot.on("message", (msg) => {
@@ -28,23 +60,34 @@ bot.on("message", (msg) => {
         (movie) => movie.title && movie.title.toLowerCase().includes(userText),
     );
 
-    if (foundMovies.length > 0) {
-        // Si des films sont trouvés, envoyez leurs détails
-        foundMovies.forEach((movie) => {
-            const formatLinkMarkdown = `🔗 Link : [${movie.title}](${movie.link})`;
-            const reply = `${formatLinkMarkdown}\n⭐️ Rating : ${movie.rating}`;
-            bot.sendMessage(chatId, reply, {
-                parse_mode: "Markdown",
-                disable_web_page_preview: true,
+    if (userText.length >= 4) {
+        if (foundMovies.length > 0) {
+            // Si des films sont trouvés, envoyez leurs détails
+            foundMovies.forEach((movie) => {
+                const formatLinkMarkdown = `🔗 Link : [${movie.title}](${movie.link})`;
+                const reply = `${formatLinkMarkdown}\n⭐️ Rating : ${movie.rating}`;
+                bot.sendMessage(chatId, reply, {
+                    parse_mode: "Markdown",
+                    disable_web_page_preview: true,
+                });
             });
-        });
+        } else {
+            // Si aucun film n'est trouvé, envoyez un message de non-trouvaille
+            bot.sendMessage(chatId, "Désolé, aucun film correspondant trouvé.");
+        }
     } else {
-        // Si aucun film n'est trouvé, envoyez un message de non-trouvaille
-        bot.sendMessage(chatId, "Désolé, aucun film correspondant trouvé.");
+        // Si le texte de l'utilisateur est trop court, envoyez un message d'erreur
+        bot.sendMessage(chatId, "Veuillez entrer un titre avec plus de 4 caractères.");
     }
+
 });
 
 // Démarrage du bot
 bot.on("polling_error", (error) => {
     console.error(error);
 });
+
+async function getHTML() {
+    const  { data } = await axios.get(url);
+    return data;
+}
